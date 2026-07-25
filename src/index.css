@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply bg-ink text-cream font-sans antialiased;
+    overscroll-behavior-y: none;
+  }
+  :focus-visible { @apply outline-none ring-2 ring-sand/70 ring-offset-2 ring-offset-ink rounded-full; }
+  ::selection { @apply bg-sand text-ink; }
+}
+
+@layer components {
+  /* "Today." — noktasi sand rengi. Uygulamanin imzasi. */
+  .dot::after { content: "."; @apply text-sand; }
+
+  .card  { @apply rounded-[26px] border border-line bg-surface p-5; }
+  .chip  { @apply rounded-full border border-line px-4 py-2 text-sm text-muted transition-colors; }
+  .chip-on { @apply border-sand text-cream; }
+  .btn   { @apply rounded-full bg-raised px-5 py-3 text-sm font-medium text-cream transition-opacity active:opacity-70 disabled:opacity-40; }
+  .btn-primary { @apply rounded-full bg-sand px-5 py-3 text-sm font-semibold text-ink transition-opacity active:opacity-80 disabled:opacity-40; }
+  .field { @apply w-full rounded-2xl border border-line bg-ink/60 px-4 py-3 text-cream placeholder:text-muted/70 focus:border-sand/60; }
+  .label { @apply text-xs uppercase tracking-[0.18em] text-muted; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
