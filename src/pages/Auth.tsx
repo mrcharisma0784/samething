@@ -21,12 +21,18 @@ export default function Auth() {
   }
 
   async function google() {
-    // HashRouter kullandigimiz icin donus URL'sinin sonuna / eklemek ve 
-    // Supabase tarafında da redirect URL'yi buna gore ayarlamak gerekir.
-    const redirectTo = window.location.origin + window.location.pathname;
+    // GitHub Pages + HashRouter icin en saglikli donus URL'si ana dizindir.
+    // Supabase URL Configuration -> Redirect URLs kisminda da bu URL ekli olmalidir.
+    const redirectTo = "https://mrcharisma0784.github.io/samething/";
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: { 
+        redirectTo,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        }
+      },
     });
   }
 
