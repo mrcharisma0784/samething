@@ -22,8 +22,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function loadProfile(userId: string) {
-    const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
-    setProfile((data as Profile) ?? null);
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    if (error && error.code === "PGRST116") {
+      // Profil yoksa trigger'in calismasini bekle veya manuel dene.
+      // Genelde trigger calisir ama bazen yarim saniye surebilir.
+      console.log("Profile not found, waiting for trigger...");
+      setTimeout(async () => {
+        const { data: retryData } = await supabase.from("profiles").select("*").eq("id", userId).single();
+        setProfile((retryData as Profile) ?? null);
+      }, 1000);
+    } else {
+      setProfile((data as Profile) ?? null);
+    }
   }
 
   useEffect(() => {

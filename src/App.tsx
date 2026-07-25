@@ -18,9 +18,12 @@ import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
 
 export default function App() {
-  const { loading } = useAuth();
+  const { session, loading } = useAuth();
   const { pathname } = useLocation();
-  const bare = pathname === "/auth";
+  
+  // Eger oturum yoksa ve auth sayfasinda degilsek, auth'a gonder.
+  const isAuthPage = pathname === "/auth";
+  const shouldRedirectToAuth = !session && !isAuthPage;
 
   if (loading) {
     return (
@@ -30,10 +33,11 @@ export default function App() {
     );
   }
 
-  if (bare) {
+  if (!session || isAuthPage) {
     return (
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="*" element={<Auth />} />
       </Routes>
     );
   }
