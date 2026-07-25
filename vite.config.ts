@@ -11,5 +11,5 @@ export default defineConfig({
   },
   // GitHub Pages'de repo adı path prefix olarak gelir.
   // Eğer custom domain kullanıyorsan base: "/" olarak bırak.
-  base: "/",
+  base: "/samething/",
 });
