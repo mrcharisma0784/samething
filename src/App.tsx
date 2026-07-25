@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import Feed from "./pages/Feed";
@@ -21,55 +21,56 @@ export default function App() {
   const { session, loading } = useAuth();
   const { pathname } = useLocation();
   
-  // Eger oturum yoksa ve auth sayfasinda degilsek, auth'a gonder.
-  const isAuthPage = pathname === "/auth";
-
+  // Yükleme ekranı
   if (loading) {
     return (
-      <div className="grid min-h-dvh place-items-center">
-        <p className="font-display text-3xl tracking-tight dot text-cream/40">SameThing</p>
+      <div className="grid min-h-dvh place-items-center bg-ink">
+        <div className="text-center space-y-4">
+          <p className="font-display text-3xl tracking-tight dot text-cream animate-pulse">SameThing</p>
+          <p className="text-xs text-muted uppercase tracking-widest">Loading session...</p>
+        </div>
       </div>
     );
   }
 
-  // OAuth donusu sirasinda URL'de token varsa beklemeye devam et
-  if (window.location.hash.includes("access_token")) {
-    return (
-      <div className="grid min-h-dvh place-items-center">
-        <p className="font-display text-3xl tracking-tight dot text-cream/40">Authenticating...</p>
-      </div>
-    );
-  }
-
-  if (!session || isAuthPage) {
+  // Giriş yapmamış kullanıcıyı sadece /auth sayfasına izin ver
+  if (!session) {
     return (
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        <Route path="*" element={<Auth />} />
+        {/* Diğer tüm yolları /auth sayfasına yönlendir */}
+        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
     );
   }
 
+  // Giriş yapmış kullanıcı /auth sayfasına gitmeye çalışırsa Feed'e gönder
+  if (pathname === "/auth") {
+    return <Navigate to="/" replace />;
+  }
+
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh bg-ink text-cream">
       <Header />
-      <Routes>
-        <Route path="/" element={<Feed />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/drop" element={<Drop />} />
-        <Route path="/inbox" element={<Inbox />} />
-        <Route path="/me" element={<Me />} />
-        <Route path="/me/edit" element={<EditProfile />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/settings/notifications" element={<NotificationSettings />} />
-        <Route path="/settings/account" element={<AccountSettings />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/t/:id" element={<ThingDetail />} />
-        <Route path="/u/:username" element={<PublicProfile />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <div className="pb-20"> {/* BottomNav için boşluk */}
+        <Routes>
+          <Route path="/" element={<Feed />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/drop" element={<Drop />} />
+          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/me" element={<Me />} />
+          <Route path="/me/edit" element={<EditProfile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/notifications" element={<NotificationSettings />} />
+          <Route path="/settings/account" element={<AccountSettings />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/t/:id" element={<ThingDetail />} />
+          <Route path="/u/:username" element={<PublicProfile />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
       <BottomNav />
     </div>
   );
