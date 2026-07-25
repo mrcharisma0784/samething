@@ -21,9 +21,8 @@ export default function Auth() {
   }
 
   async function google() {
-    // GitHub Pages + HashRouter icin en saglikli donus URL'si ana dizindir.
-    // Supabase URL Configuration -> Redirect URLs kisminda da bu URL ekli olmalidir.
-    const redirectTo = "https://mrcharisma0784.github.io/samething/";
+    // Vercel'de artik dinamik origin kullanabiliriz.
+    const redirectTo = window.location.origin;
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { 
