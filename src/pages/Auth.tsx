@@ -23,7 +23,7 @@ export default function Auth() {
   async function google() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.origin + window.location.pathname },
     });
   }
 
@@ -60,7 +60,7 @@ export default function Auth() {
                  className="field" value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
 
-        {error && <p className="text-sm text-rare">{error}</p>}
+        {error && <p className="text-sm text-sand">{error}</p>}
 
         <button onClick={submit} disabled={busy || !email || !password} className="btn-primary w-full py-4">
           {mode === "in" ? "Sign in" : "Create account"}
