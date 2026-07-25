@@ -23,12 +23,20 @@ export default function App() {
   
   // Eger oturum yoksa ve auth sayfasinda degilsek, auth'a gonder.
   const isAuthPage = pathname === "/auth";
-  const shouldRedirectToAuth = !session && !isAuthPage;
 
   if (loading) {
     return (
       <div className="grid min-h-dvh place-items-center">
         <p className="font-display text-3xl tracking-tight dot text-cream/40">SameThing</p>
+      </div>
+    );
+  }
+
+  // OAuth donusu sirasinda URL'de token varsa beklemeye devam et
+  if (window.location.hash.includes("access_token")) {
+    return (
+      <div className="grid min-h-dvh place-items-center">
+        <p className="font-display text-3xl tracking-tight dot text-cream/40">Authenticating...</p>
       </div>
     );
   }

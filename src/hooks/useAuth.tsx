@@ -49,7 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // HashRouter'da OAuth donusu bazen URL'deki fragment (#) nedeniyle 
     // otomatik yakalanamayabilir. Bunu zorlamak icin:
     if (window.location.hash.includes("access_token")) {
-      initSession();
+      setLoading(true);
+      // Supabase hash icindeki token'i okusun
+      supabase.auth.getSession().then(async ({ data }) => {
+        if (data.session) {
+          setSession(data.session);
+          await loadProfile(data.session.user.id);
+          // Token'i URL'den temizle ki sonsuz donguye girmesin
+          window.location.hash = "";
+        }
+        setLoading(false);
+      });
     }
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, s) => {
