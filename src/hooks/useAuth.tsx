@@ -27,11 +27,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
+    const initSession = async () => {
+      const { data } = await supabase.auth.getSession();
       setSession(data.session);
       if (data.session) await loadProfile(data.session.user.id);
       setLoading(false);
-    });
+    };
+
+    initSession();
+
+    // HashRouter'da OAuth donusu bazen URL'deki fragment (#) nedeniyle 
+    // otomatik yakalanamayabilir. Bunu zorlamak icin:
+    if (window.location.hash.includes("access_token")) {
+      initSession();
+    }
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_e, s) => {
       setSession(s);

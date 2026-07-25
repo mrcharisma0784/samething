@@ -21,9 +21,12 @@ export default function Auth() {
   }
 
   async function google() {
+    // HashRouter kullandigimiz icin donus URL'sinin sonuna / eklemek ve 
+    // Supabase tarafında da redirect URL'yi buna gore ayarlamak gerekir.
+    const redirectTo = window.location.origin + window.location.pathname;
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + window.location.pathname },
+      options: { redirectTo },
     });
   }
 
