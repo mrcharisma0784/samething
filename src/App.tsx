@@ -16,6 +16,7 @@ import ThingDetail from "./pages/ThingDetail";
 import PublicProfile from "./pages/PublicProfile";
 import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
   const { session, loading } = useAuth();
@@ -72,6 +73,7 @@ export default function App() {
         </Routes>
       </div>
       <BottomNav />
+      <Analytics />
     </div>
   );
 }
