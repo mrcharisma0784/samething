@@ -5,9 +5,15 @@ const url = import.meta.env.VITE_SUPABASE_URL;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!url || !key) {
-  throw new Error("Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.");
+  console.error("Missing Supabase credentials!");
 }
 
-export const supabase = createClient<Database>(url, key, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+export const supabase = createClient<Database>(url || '', key || '', {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'samething-auth-token',
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined
+  }
 });

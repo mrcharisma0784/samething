@@ -16,36 +16,43 @@ import ThingDetail from "./pages/ThingDetail";
 import PublicProfile from "./pages/PublicProfile";
 import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
-import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
-  const { session, loading } = useAuth();
+  const { session, loading, error } = useAuth();
   const { pathname } = useLocation();
   
-  // Yükleme ekranı
   if (loading) {
     return (
       <div className="grid min-h-dvh place-items-center bg-ink">
         <div className="text-center space-y-4">
           <p className="font-display text-3xl tracking-tight dot text-cream animate-pulse">SameThing</p>
-          <p className="text-xs text-muted uppercase tracking-widest">Loading session...</p>
+          <p className="text-xs text-muted uppercase tracking-widest">Checking session...</p>
         </div>
       </div>
     );
   }
 
-  // Giriş yapmamış kullanıcıyı sadece /auth sayfasına izin ver
+  if (error) {
+    return (
+      <div className="grid min-h-dvh place-items-center bg-ink p-10">
+        <div className="text-center space-y-4 border border-red-500/30 p-6 rounded-xl">
+          <p className="text-red-400 font-bold">⚠️ Auth Error</p>
+          <p className="text-xs text-muted break-all">{error}</p>
+          <button onClick={() => window.location.reload()} className="text-xs underline text-cream">Retry</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) {
     return (
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        {/* Diğer tüm yolları /auth sayfasına yönlendir */}
         <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
     );
   }
 
-  // Giriş yapmış kullanıcı /auth sayfasına gitmeye çalışırsa Feed'e gönder
   if (pathname === "/auth") {
     return <Navigate to="/" replace />;
   }
@@ -53,7 +60,7 @@ export default function App() {
   return (
     <div className="min-h-dvh bg-ink text-cream">
       <Header />
-      <div className="pb-20"> {/* BottomNav için boşluk */}
+      <div className="pb-20">
         <Routes>
           <Route path="/" element={<Feed />} />
           <Route path="/search" element={<Search />} />
@@ -73,7 +80,6 @@ export default function App() {
         </Routes>
       </div>
       <BottomNav />
-      <Analytics />
     </div>
   );
 }

@@ -7,12 +7,13 @@ interface AuthValue {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  error: string | null;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthValue>({
-  session: null, profile: null, loading: true,
+  session: null, profile: null, loading: true, error: null,
   refreshProfile: async () => {}, signOut: async () => {},
 });
 
@@ -20,53 +21,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   async function loadProfile(userId: string) {
     try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-      if (error) {
-        console.warn("Profile load error:", error.message);
-        if (error.code === "PGRST116") {
-          // Profil henüz oluşmamış olabilir, 1.5 saniye sonra tekrar dene
+      const { data, error: profileError } = await supabase.from("profiles").select("*").eq("id", userId).single();
+      if (profileError) {
+        if (profileError.code === "PGRST116") {
+          // Profil yoksa, auth.users'dan bilgi alıp bekle (Trigger calisiyor olmali)
           setTimeout(async () => {
-            const { data: retryData } = await supabase.from("profiles").select("*").eq("id", userId).single();
-            if (retryData) setProfile(retryData as Profile);
-          }, 1500);
+            const { data: retry } = await supabase.from("profiles").select("*").eq("id", userId).single();
+            if (retry) setProfile(retry as Profile);
+          }, 2000);
+        } else {
+          setError("Profile error: " + profileError.message);
         }
       } else {
         setProfile(data as Profile);
       }
-    } catch (e) {
-      console.error("Critical profile load error:", e);
+    } catch (e: any) {
+      setError("Critical profile error: " + e.message);
     }
   }
 
   useEffect(() => {
-    // 1. Mevcut oturumu kontrol et
-    const checkSession = async () => {
-      setLoading(true);
-      const { data: { session: s }, error } = await supabase.auth.getSession();
-      console.log("Initial session check:", s ? "Logged in" : "No session", error || "");
-      
-      setSession(s);
-      if (s) await loadProfile(s.user.id);
-      setLoading(false);
+    // URL'deki hash'i kontrol et (OAuth donusu icin)
+    if (window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('error'))) {
+      console.log("OAuth hash detected, waiting for Supabase to process...");
+    }
+
+    const initAuth = async () => {
+      try {
+        const { data: { session: s }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) setError("Session error: " + sessionError.message);
+        
+        setSession(s);
+        if (s) await loadProfile(s.user.id);
+      } catch (e: any) {
+        setError("Init error: " + e.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    checkSession();
+    initAuth();
 
-    // 2. Auth durumu değişimlerini dinle (Login, Logout, Token Refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
-      console.log("Auth event triggered:", event, s ? "User exists" : "No user");
-      
+      console.log("Auth Event:", event);
       setSession(s);
       if (s) {
         await loadProfile(s.user.id);
       } else {
         setProfile(null);
       }
-      
-      // OAuth (Google) dönüşünde event "SIGNED_IN" olur, bu durumda loading'i kapatmalıyız
       setLoading(false);
     });
 
@@ -74,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value: AuthValue = {
-    session, profile, loading,
+    session, profile, loading, error,
     refreshProfile: async () => { if (session) await loadProfile(session.user.id); },
     signOut: async () => { 
       setLoading(true);
